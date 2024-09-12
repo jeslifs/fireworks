@@ -122,8 +122,9 @@ window.addEventListener('resize', () =>
     // Update sizes
     sizes.width = window.innerWidth
     sizes.height = window.innerHeight
-    sizes.resolution.set(sizes.width * sizes.pixelRatio, sizes.height * sizes.pixelRatio)
     sizes.pixelRatio = Math.min(window.pixelRatio, 2)
+    sizes.resolution.set(sizes.width * sizes.pixelRatio, sizes.height * sizes.pixelRatio)
+    
 
     // Update camera
     camera.aspect = sizes.width / sizes.height
