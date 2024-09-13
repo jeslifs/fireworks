@@ -1,6 +1,7 @@
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import GUI from 'lil-gui'
+import gsap from 'gsap'
 import Vertex from './shaders/firework/vertex.glsl'
 import Fragment from './shaders/firework/fragment.glsl'
 
@@ -58,6 +59,7 @@ const createFirework = (count, position, size, texture, radius, color) =>
     // geometry
     const positionsArray = new Float32Array(count * 3)
     const sizesArray = new Float32Array(count)
+    const timeMultipliersArray = new Float32Array(count)
 
     for(let i = 0; i < count; i++)
     {
@@ -77,11 +79,14 @@ const createFirework = (count, position, size, texture, radius, color) =>
         positionsArray[i3 + 2] = position.z
 
         sizesArray[i] = Math.random()
+
+        timeMultipliersArray[i] = 1 + Math.random()
     }
 
     const geometry = new THREE.BufferGeometry()
     geometry.setAttribute('position', new THREE.Float32BufferAttribute(positionsArray, 3))
     geometry.setAttribute('aSize', new THREE.Float32BufferAttribute(sizesArray, 1))
+    geometry.setAttribute('aTimeMultiplier', new THREE.Float32BufferAttribute(timeMultipliersArray, 1))
     
     // material
     texture.flipY = false
@@ -105,24 +110,65 @@ const createFirework = (count, position, size, texture, radius, color) =>
     const firework = new THREE.Points(geometry, material)
     firework.position.copy(position)
     scene.add(firework)
+
+    // destroy
+    const destroy = () =>
+    {
+        scene.remove(firework)
+        geometry.dispose()
+        material.dispose()
+    }
+
+    // animate
+    gsap.to(
+        material.uniforms.uProgress,
+        { 
+            value: 1, 
+            duration: 3,
+            ease: 'linear',
+            onComplete: destroy
+        }
+    )
 }
 
-createFirework(
-    100,
-    new THREE.Vector3(),
-    0.5,
-    textures[10],
-    1,
-    new THREE.Color('#8affff')
-)
+// createFirework(
+//     100,
+//     new THREE.Vector3(),
+//     0.5,
+//     textures[10],
+//     1,
+//     new THREE.Color('#8affff')
+// )
 
+
+const createRandomFirework = () =>
+{
+    const count = Math.round(400 + Math.random() * 1000)
+    const position = new THREE.Vector3(
+        (Math.random() - 0.5) * 2,
+        Math.random(),
+        (Math.random() - 0.5) * 2
+    )
+    const size = 0.1 + Math.random() * 0.1
+    const texture = textures[Math.floor(Math.random() * textures.length)]
+    const radius = 0.5 + Math.random()
+    const color = new THREE.Color()
+    color.setHSL(Math.random(), 1, 0.7)
+    // console.log(count, position, size, texture, radius, color);
+    
+    createFirework(count, position, size, texture, radius, color)
+}
+
+createRandomFirework()
+
+window.addEventListener('click', createRandomFirework)
 
 window.addEventListener('resize', () =>
 {
     // Update sizes
     sizes.width = window.innerWidth
     sizes.height = window.innerHeight
-    sizes.pixelRatio = Math.min(window.pixelRatio, 2)
+    sizes.pixelRatio = Math.min(window.devicePixelRatio, 2)
     sizes.resolution.set(sizes.width * sizes.pixelRatio, sizes.height * sizes.pixelRatio)
     
 
